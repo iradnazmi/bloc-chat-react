@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-class RoomList extends Component {
+export class RoomList extends Component {
   constructor(props) {
     super(props);
       this.state = {
@@ -8,17 +8,22 @@ class RoomList extends Component {
         rooms: []
       };
 
-    this.roomsRef = this.props.firebase.database().ref('rooms');
-    this.createRoom = this.createRoom.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+      this.roomsRef = this.props.firebase.database().ref('rooms');
+      this.createRoom = this.createRoom.bind(this);
+      this.handleChange = this.handleChange.bind(this);
   }
 
   createRoom(e) {
     this.roomsRef.push({ title: this.state.title });
+    this.setState({ title: e.target.value });
   }
 
   handleChange(e) {
     this.setState({ title: e.target.value });
+  }
+
+  selectRoom(room) {
+    this.props.activeRoom(room);
   }
 
   componentDidMount() {
@@ -36,7 +41,7 @@ class RoomList extends Component {
         <input type="submit" value="Create Chat Room"/>
       </form>
     const roomList = this.state.rooms.map((room) =>
-      <li key={room.key}> {room.title} </li>
+      <li key={room.key} onClick={(e) => this.selectRoom(room, e)}> {room.title} </li>
     );
     return(
       <div>
@@ -47,4 +52,4 @@ class RoomList extends Component {
   }
 }
 
-export default RoomList
+export default RoomList;
