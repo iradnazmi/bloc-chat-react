@@ -38,7 +38,7 @@ export class User extends Component {
 
   render() {
     return (
-      <div className="log-button">
+      <div className="login-button">
         <h3>Welcome, {this.props.welcome}</h3>
         { this.props.welcome === "Guest" ?
           <button id="logIn" onClick={this.signIn}>Log In</button>
