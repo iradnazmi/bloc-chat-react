@@ -27,23 +27,23 @@ export class MessageList extends Component {
   createMessage(e) {
     e.preventDefault();
     this.messagesRef.push({
-      username: this.state.username,
+      username: this.props.user,
       content: this.state.content,
       sentAt: this.state.sentAt,
       roomId: this.state.roomId
     });
     this.setState({
-      username: '',
-      content: '',
-      sentAt: '',
-      roomId: ''
+      username: "",
+      content: "",
+      sentAt: "",
+      roomId: ""
     });
   }
 
   handleChange(e) {
     e.preventDefault();
     this.setState({
-      username: "user",
+      username: this.props.user,
       content: e.target.value,
       sentAt: this.props.firebase.database.ServerValue.TIMESTAMP,
       roomId: this.props.activeRoom
@@ -61,7 +61,7 @@ export class MessageList extends Component {
     const messageList =(
       this.state.messages.map((message) => {
         if (message.roomId === activeRoom) {
-          return <li key={message.key}>{message.content}</li>
+          return <li key={message.key}> {message.sentAt} - {message.username}: {message.content}</li>
         }
         return null;
       })
