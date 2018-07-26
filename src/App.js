@@ -62,7 +62,7 @@ class App extends Component {
           <User firebase={firebase} settingUser={this.settingUser} welcome={this.state.user === null ? "Guest" : this.state.user.displayName}/>
         </div>
         <div>
-          <h2 className="room-option">{this.state.activeRoom.title || "Select A Room"}</h2>
+          <h2 className="room-option">{viewMessages !== "" ? this.state.activeRoom.title : "Select A Room"}</h2>
           <RoomList className="listsection" firebase={firebase} activeRoom={this.activeRoom} />
           { viewMessages ?
             <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user} />

@@ -13,7 +13,6 @@ export class MessageList extends Component {
         display: []
       };
 
-      this.messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
       this.handleChange = this.handleChange.bind(this);
       this.createMessage = this.createMessage.bind(this);
       this.editMessage = this.editMessage.bind(this);
@@ -21,41 +20,41 @@ export class MessageList extends Component {
   }
 
   deleteMessage(messageKey) {
-    console.log("Deleting Message");
-    const fbMessages = this.props.firebase.database().ref("messages/" + messageKey);
+    const fbMessages = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages/" + messageKey);
     fbMessages.remove();
-    console.log("Message Deleted")
   }
 
   editMessage(message) {
-    const newMessageName = (
+    const newMessageContent = (
       <form onSubmit={this.updateMessage}>
         <input type="text" defaultValue={message.content} ref={(input) => this.input = input}/>
         <input type="submit" value="Update" />
         <button type="button" onClick={() => this.setState({ newContent: "" })}>Cancel</button>
       </form>
     );
-    return newMessageName;
+    return newMessageContent;
   }
 
   updateMessage(e) {
     e.preventDefault();
+    const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
     const updates = { [this.state.newContent + "/content"]: this.input.value };
-    this.messagesRef.update(updates);
+    messagesRef.update(updates);
     this.setState({ newContent:"" });
   }
 
   createMessage(e) {
+    const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
     e.preventDefault();
     if (this.props.user === null) {
-      this.messagesRef.push({
+      messagesRef.push({
         username: "Guest",
         content: this.state.content,
         sentAt: this.state.sentAt,
         roomId: this.state.roomId
       });
     } else {
-      this.messagesRef.push({
+      messagesRef.push({
       username: this.props.user.displayName,
       content: this.state.content,
       sentAt: this.state.sentAt,
@@ -82,7 +81,8 @@ export class MessageList extends Component {
   }
 
   componentDidMount() {
-    this.messagesRef.on('value', snapshot => {
+    const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
+    messagesRef.on('value', snapshot => {
       const messageChanges = [];
       snapshot.forEach((message) => {
         messageChanges.push({
@@ -96,16 +96,11 @@ export class MessageList extends Component {
       this.setState({ messages: messageChanges })
     });
   }
-  //   this.messagesRef.on('child_added', snapshot  => {
-  //      const message = snapshot.val();
-  //      message.key = snapshot.key;
-  //      this.setState({ messages: this.state.messages.concat(message) })
-  //    });
-  // }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.activeRoom !== this.props.activeRoom) {
-      this.messagesRef.on('value', snapshot => {
+      const messagesRef = this.props.firebase.database().ref("rooms/" + nextProps.activeRoom + "/messages");
+      messagesRef.on('value', snapshot => {
         let messageChanges = [];
         snapshot.forEach((message) => {
           messageChanges.push({
@@ -140,7 +135,7 @@ export class MessageList extends Component {
               <div>{message.content}</div>
             }
             <button id="edit-message" onClick={() => this.setState({ newContent: message.key })}>Edit</button>
-            <button id="delete-message" onClick={null} >Delete Message</button>
+            <button id="delete-message" onClick={(e) => this.deleteMessage(message.key)} >Delete Message</button>
           </li>
         }
         return null;
