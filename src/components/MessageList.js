@@ -9,40 +9,40 @@ export class MessageList extends Component {
         content: "",
         sentAt: "",
         roomId: "",
-        currentRoomMessages: []
+        newContent: "",
+        display: []
       };
 
-      this.messagesRef = this.props.firebase.database().ref('messages');
+      this.messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
       this.handleChange = this.handleChange.bind(this);
       this.createMessage = this.createMessage.bind(this);
-      this.formatMsToHr = this.formatMsToHr.bind(this);
-      this.deleteMessage = this.deleteMessage.bind(this);
-  }
-
-  componentDidMount() {
-    this.messagesRef.on('child_added', snapshot => {
-      const message = snapshot.val();
-      message.key = snapshot.key;
-      this.setState({ messages: this.state.messages.concat(message) })
-    });
+      this.editMessage = this.editMessage.bind(this);
+      this.updateMessage = this.updateMessage.bind(this);
   }
 
   deleteMessage(messageKey) {
-    const newMessageList = this.state.messages.filter((e) => {
-      return e.key !== messageKey;
-    });
-    this.setState({
-      messages: newMessageList,
-      currentRoomMessages: newMessageList
-    });
-    this.messagesRef.child(messageKey).remove();
+    console.log("Deleting Message");
+    const fbMessages = this.props.firebase.database().ref("messages/" + messageKey);
+    fbMessages.remove();
+    console.log("Message Deleted")
   }
 
-  updateMessages(curRoomId) {
-    const currentMessages = this.state.messages.filter((e) => {
-      return e.roomId === curRoomId;
-    });
-    this.setState({ currentRoomMessages: currentMessages })
+  editMessage(message) {
+    const newMessageName = (
+      <form onSubmit={this.updateMessage}>
+        <input type="text" defaultValue={message.content} ref={(input) => this.input = input}/>
+        <input type="submit" value="Update" />
+        <button type="button" onClick={() => this.setState({ newContent: "" })}>Cancel</button>
+      </form>
+    );
+    return newMessageName;
+  }
+
+  updateMessage(e) {
+    e.preventDefault();
+    const updates = { [this.state.newContent + "/content"]: this.input.value };
+    this.messagesRef.update(updates);
+    this.setState({ newContent:"" });
   }
 
   createMessage(e) {
@@ -70,19 +70,6 @@ export class MessageList extends Component {
     });
   }
 
-  formatMsToHr(ms) {
-    var hours = parseInt((ms / (1000*60*60)) % 24);
-    var minutes = parseInt((ms / (1000*60)) % 60);
-    hours = (hours < 10) ? "0" + hours : hours;
-    minutes = (minutes < 10) ? "0" + minutes: minutes;
-    if (hours > 12) {
-      hours = hours - 12;
-      return hours + ":" + minutes + "PM";
-    } else {
-      return hours + ":" + minutes + "AM";
-    }
-  }
-
   handleChange(e) {
     e.preventDefault();
     var timestamp = new Date().toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
@@ -90,20 +77,52 @@ export class MessageList extends Component {
       username: this.props.user,
       content: e.target.value,
       sentAt: timestamp,
-      roomId: this.props.activeRoom
+      roomId: this.props.activeRoom,
     })
   }
 
-  componentWillUnmount() {
-    this.messagesRef.off('child_added', snapshot => {
-      const message = snapshot.val();
-      message.key = snapshot.key;
-      this.setState({ messages: this.state.messages.concat(message) })
+  componentDidMount() {
+    this.messagesRef.on('value', snapshot => {
+      const messageChanges = [];
+      snapshot.forEach((message) => {
+        messageChanges.push({
+          key: message.key,
+          username: message.val().username,
+          content: message.val().content,
+          sentAt: message.val().sentAt,
+          roomId: message.val().roomId
+        });
+      });
+      this.setState({ messages: messageChanges })
     });
+  }
+  //   this.messagesRef.on('child_added', snapshot  => {
+  //      const message = snapshot.val();
+  //      message.key = snapshot.key;
+  //      this.setState({ messages: this.state.messages.concat(message) })
+  //    });
+  // }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.activeRoom !== this.props.activeRoom) {
+      this.messagesRef.on('value', snapshot => {
+        let messageChanges = [];
+        snapshot.forEach((message) => {
+          messageChanges.push({
+            key: message.key,
+            username: message.val().username,
+            content: message.val().content,
+            sentAt: message.val().sentAt,
+            roomId: message.val().roomId
+          });
+        });
+        this.setState({ messages: messageChanges })
+      });
+    }
   }
 
   render() {
-    const activeRoom = this.props.activeRoom;
+    const selectedRoom = this.props.activeRoom;
     const messageBar = (
       <form onSubmit={this.createMessage}>
         <input type="text" value={this.state.content} placeholder="Enter your message" onChange={this.handleChange}/>
@@ -112,12 +131,19 @@ export class MessageList extends Component {
     );
     const messageList =(
       this.state.messages.map((message) => {
-        if (message.roomId === activeRoom) {
+        if (message.roomId === selectedRoom) {
           return <li key={message.key}>
-                   {message.sentAt} - {message.username}: {message.content}
-                    <button id="delete-message" onClick={null}>Delete Message</button>
-                 </li>
+            <div> {message.sentAt} {message.username}: </div>
+            { (this.state.newContent === message.key) && (this.props.user === message.username) ?
+              this.editMessage(message)
+              :
+              <div>{message.content}</div>
+            }
+            <button id="edit-message" onClick={() => this.setState({ newContent: message.key })}>Edit</button>
+            <button id="delete-message" onClick={null} >Delete Message</button>
+          </li>
         }
+        return null;
       })
     );
     return (

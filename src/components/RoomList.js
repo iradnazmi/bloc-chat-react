@@ -8,7 +8,6 @@ export class RoomList extends Component {
         rooms: [],
         newName: ""
       };
-
       this.roomsRef = this.props.firebase.database().ref('rooms');
       this.createRoom = this.createRoom.bind(this);
       this.handleChange = this.handleChange.bind(this);
