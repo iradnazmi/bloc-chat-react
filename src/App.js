@@ -21,10 +21,12 @@ class App extends Component {
     super(props);
     this.state = {
       activeRoom: "",
-      user: null
+      user: "Guest",
+      anon: true,
     };
     this.activeRoom = this.activeRoom.bind(this);
     this.settingUser = this.settingUser.bind(this);
+    this.anonUser = this.anonUser.bind(this);
   }
 
   activeRoom(room) {
@@ -32,27 +34,39 @@ class App extends Component {
   }
 
   settingUser(user) {
-      this.setState({ user: user })
+      this.setState({
+        user: user,
+        anon: false
+      });
+  }
+
+  anonUser() {
+    const randomName = "Anonymous" + Math.floor(Math.random() * 101);
+    this.setState({
+      user: randomName,
+      anon: true
+    });
+    return this.state.user;
   }
 
 
   render() {
     const viewMessages = this.state.activeRoom;
-    const theUser = !this.state.user === null ? this.state.user.displayName : "Guest";
     return (
       <div className="App">
         <header className="App-header">
-          <h1 className="App-title"> TeChat</h1>
+          <h1 className="App-title">TeChat</h1>
+          <h3 className="slogan">Talk to friends all across the globe about the latest in technology!</h3>
         </header>
         <div>
-          <User firebase={firebase} settingUser={this.settingUser} welcome={theUser}/>
+          <User firebase={firebase} settingUser={this.settingUser} welcome={this.state.user === null ? "Guest" : this.state.user.displayName}/>
         </div>
         <div>
           <h2 className="room-option">{this.state.activeRoom.title || "Select A Room"}</h2>
           <RoomList className="listsection" firebase={firebase} activeRoom={this.activeRoom} />
           { viewMessages ?
-            <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user.displayName} />
-            : null
+            <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user} />
+            : <div id="open-space">Empty space here for now</div>
           }
         </div>
       </div>

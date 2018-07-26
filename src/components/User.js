@@ -4,7 +4,8 @@ export class User extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      signedIn: false
+      signedIn: false,
+      adminStatus: false
     };
     this.signIn = this.signIn.bind(this);
     this.signOut = this.signOut.bind(this);
@@ -21,19 +22,19 @@ export class User extends Component {
     this.props.firebase.auth().signInWithPopup(provider).then(result => {
       const user = result.user;
       this.props.settingUser(user);
-      this.setState({ signedIn: true });
+      this.setState({ signedIn: !this.state.signedIn });
     });
   }
 
   signOut() {
-    if (this.state.signedIn) {
-      this.props.firebase.auth().signOut().then(() => {
-        this.props.settingUser(null);
-        this.setState({ signedIn: false });
-      });
-    } else {
-        return console.log("Already signed in")
-    }
+    this.props.firebase.auth().signOut().then(() => {
+      this.props.settingUser("Guest");
+      this.setState({ signedIn: !this.state.signedIn });
+    });
+  }
+
+  createAdmin() {
+    this.setState({ adminStatus: true });
   }
 
   render() {

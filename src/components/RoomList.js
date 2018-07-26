@@ -5,12 +5,38 @@ export class RoomList extends Component {
     super(props);
       this.state = {
         title: "",
-        rooms: []
+        rooms: [],
+        newName: ""
       };
 
       this.roomsRef = this.props.firebase.database().ref('rooms');
       this.createRoom = this.createRoom.bind(this);
       this.handleChange = this.handleChange.bind(this);
+      this.updateRoom = this.updateRoom.bind(this);
+      this.editRoomName = this.editRoomName.bind(this);
+  }
+
+  editRoomName(room) {
+    const newRoomName = (
+      <form onSubmit={this.updateRoom}>
+        <input type="text" defaultValue={room.title} ref={(input) => this.input = input}/>
+        <input type="submit" value="Update" />
+        <button type="button" onClick={() => this.setState({ newName: "" })}>Cancel</button>
+      </form>
+    );
+    return newRoomName;
+  }
+
+  updateRoom(e) {
+    e.preventDefault();
+    const updates = {[this.state.newName + "/title"]: this.input.value};
+    this.roomsRef.update(updates);
+    this.setState({ newName: "" });
+  }
+
+  deleteRoom(roomKey) {
+    const fbRooms = this.props.firebase.database().ref("rooms/" + roomKey);
+    fbRooms.remove();
   }
 
   createRoom(e) {
@@ -20,7 +46,7 @@ export class RoomList extends Component {
   }
 
   handleChange(e) {
-    this.setState({ title: e.target.value });
+    this.setState({ [e.target.name]: e.target.value });
   }
 
   selectRoom(room) {
@@ -28,21 +54,36 @@ export class RoomList extends Component {
   }
 
   componentDidMount() {
-    this.roomsRef.on('child_added', snapshot => {
-      const room = snapshot.val();
-      room.key = snapshot.key;
-      this.setState({ rooms: this.state.rooms.concat( room ) })
+    this.roomsRef.on('value', snapshot => {
+      const roomChanges = [];
+      snapshot.forEach((room) => {
+        roomChanges.push({
+          key: room.key,
+          title: room.val().title
+        });
+      });
+      this.setState({ rooms: roomChanges })
     });
   }
 
   render() {
     const chatRoomForm = (
       <form onSubmit={this.createRoom}>
-        <input type="text" value={this.state.title} placeholder="Enter your room name" onChange={this.handleChange}/>
+        <input type="text" name="title" value={this.state.title} placeholder="Enter your room name" onChange={this.handleChange}/>
         <input type="submit" value="Create Chat Room"/>
       </form> );
     const roomList = this.state.rooms.map((room) =>
-      <li key={room.key} onClick={(e) => this.selectRoom(room, e)}> {room.title} </li>
+      <li key={room.key} onClick={(e) => this.selectRoom(room, e)}>
+        {this.state.newName === room.key ?
+          this.editRoomName(room)
+          :
+          <div className="room-section">
+            <h3 id="room-titles" onClick={(e) => this.selectRoom(room,e)}>{room.title}</h3>
+            <button id="delete-room" onClick={(e) => this.deleteRoom(room.key)}>Delete</button>
+            <button id="edit-name" onClick={() => this.setState({ newName: room.key })}>Edit</button>
+          </div>
+        }
+      </li>
     );
     return(
       <div>
