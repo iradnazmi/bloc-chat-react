@@ -4,10 +4,12 @@ export class RoomList extends Component {
   constructor(props) {
     super(props);
       this.state = {
+        creator: "",
         title: "",
         rooms: [],
         newName: ""
       };
+
       this.roomsRef = this.props.firebase.database().ref('rooms');
       this.createRoom = this.createRoom.bind(this);
       this.handleChange = this.handleChange.bind(this);
@@ -36,16 +38,24 @@ export class RoomList extends Component {
   deleteRoom(roomKey) {
     const fbRooms = this.props.firebase.database().ref("rooms/" + roomKey);
     fbRooms.remove();
+    this.props.activeRoom("")
   }
 
   createRoom(e) {
     e.preventDefault();
     this.roomsRef.push({ title: this.state.title });
-    this.setState({ title: "" });
+    this.setState({
+      title: "",
+      creator: ""
+    });
   }
 
   handleChange(e) {
-    this.setState({ [e.target.name]: e.target.value });
+    e.preventDefault();
+    this.setState({
+      [e.target.name]: e.target.value,
+      creator: this.props.user
+    });
   }
 
   selectRoom(room) {
@@ -58,7 +68,8 @@ export class RoomList extends Component {
       snapshot.forEach((room) => {
         roomChanges.push({
           key: room.key,
-          title: room.val().title
+          title: room.val().title,
+          creator: room.val().creator
         });
       });
       this.setState({ rooms: roomChanges })
@@ -72,14 +83,20 @@ export class RoomList extends Component {
         <input type="submit" value="Create Chat Room"/>
       </form> );
     const roomList = this.state.rooms.map((room) =>
-      <li key={room.key} onClick={(e) => this.selectRoom(room, e)}>
+      <li key={room.key}>
         {this.state.newName === room.key ?
           this.editRoomName(room)
           :
           <div className="room-section">
             <h3 id="room-titles" onClick={(e) => this.selectRoom(room,e)}>{room.title}</h3>
-            <button id="delete-room" onClick={(e) => this.deleteRoom(room.key)}>Delete</button>
-            <button id="edit-name" onClick={() => this.setState({ newName: room.key })}>Edit</button>
+            {this.props.user === room.creator ?
+              <div>
+                <button id="delete-room" onClick={(e) => this.deleteRoom(room.key)}>Delete</button>
+                <button id="edit-name" onClick={() => this.setState({ newName: room.key })}>Edit</button>
+              </div>
+              :
+              null
+            }
           </div>
         }
       </li>

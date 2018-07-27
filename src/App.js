@@ -4,6 +4,7 @@ import * as firebase from 'firebase';
 import { RoomList } from "./components/RoomList.js";
 import { MessageList } from "./components/MessageList.js";
 import { User } from "./components/User.js";
+import { ChatRoomParticipants } from "./components/ChatRoomParticipants.js";
 
 // Initialize Firebase
 var config = {
@@ -21,53 +22,66 @@ class App extends Component {
     super(props);
     this.state = {
       activeRoom: "",
-      user: "Guest",
-      anon: true,
+      user: null,
     };
     this.activeRoom = this.activeRoom.bind(this);
     this.settingUser = this.settingUser.bind(this);
-    this.anonUser = this.anonUser.bind(this);
   }
 
   activeRoom(room) {
-    this.setState({ activeRoom: room });
+    this.setState({
+      activeRoom: room
+    });
+    const userRef = firebase.database().ref("presence/" + this.state.user.uid);
+    const roomKey = room === "" ? "" : room.key;
+    userRef.update({ currentRoom: roomKey });
   }
 
   settingUser(user) {
-      this.setState({
-        user: user,
-        anon: false
-      });
-  }
-
-  anonUser() {
-    const randomName = "Anonymous" + Math.floor(Math.random() * 101);
     this.setState({
-      user: randomName,
-      anon: true
+      user: user
     });
-    return this.state.user;
   }
-
 
   render() {
-    const viewMessages = this.state.activeRoom;
+    let messageList;
+    let currentUser;
+    let roomList;
+    let roomParticipants;
+    if (this.state.user !== null) {
+      roomList = (
+        <RoomList firebase={firebase} activeRoom={this.activeRoom} user={this.state.user.email} />
+      );
+      currentUser = this.state.user.displayName;
+    } else {
+      currentUser = "Guest";
+    }
+
+    if (this.state.user !== null && this.state.activeRoom) {
+      messageList = (
+        <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user.displayName} />
+      );
+      roomParticipants = (
+        <ChatRoomParticipants firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user.displayName} />
+      );
+    }
+
     return (
       <div className="App">
         <header className="App-header">
-          <h1 className="App-title">TeChat</h1>
+          <h1 className="App-title" onClick={() => this.setState({ activeRoom: ""})}> TeChat</h1>
           <h3 className="slogan">Talk to friends all across the globe about the latest in technology!</h3>
         </header>
-        <div>
-          <User firebase={firebase} settingUser={this.settingUser} welcome={this.state.user === null ? "Guest" : this.state.user.displayName}/>
+        <div className="user-options">
+          <User firebase={firebase} settingUser={this.settingUser} welcome={currentUser} />
         </div>
-        <div>
-          <h2 className="room-option">{viewMessages !== "" ? this.state.activeRoom.title : "Select A Room"}</h2>
-          <RoomList className="listsection" firebase={firebase} activeRoom={this.activeRoom} />
-          { viewMessages ?
-            <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user} />
-            : <div id="open-space">Empty space here for now</div>
-          }
+        <div className="member-list">
+          <h2>{this.state.activeRoom.title || "Select A Room"}</h2>
+          <div>{roomParticipants}</div>
+          <div>{roomList}</div>
+        </div>
+        <div className="message-section">
+          {messageList}
         </div>
       </div>
     );

@@ -4,7 +4,6 @@ export class User extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      signedIn: false,
       adminStatus: false
     };
     this.signIn = this.signIn.bind(this);
@@ -14,6 +13,22 @@ export class User extends Component {
   componentDidMount() {
     this.props.firebase.auth().onAuthStateChanged(user => {
       this.props.settingUser(user);
+      const userOnline = this.props.firebase.database().ref(".info/connected");
+      if (user) {
+        const userRef = this.props.firebase.database().ref("presence/" + user.uid);
+        userOnline.on("value", snapshot => {
+          if (snapshot.val()) {
+            userRef.update({
+              username: user.displayName,
+              userOnline: true
+            })
+            userRef.onDisconnect().update({
+              userOnline: false,
+              currentRoom: ""
+            });
+          }
+        });
+      }
     });
   }
 
@@ -22,14 +37,16 @@ export class User extends Component {
     this.props.firebase.auth().signInWithPopup(provider).then(result => {
       const user = result.user;
       this.props.settingUser(user);
-      this.setState({ signedIn: !this.state.signedIn });
     });
   }
 
   signOut() {
+    this.props.firebase.auth().onAuthStateChanged(user => {
+      const userRef = this.props.firebase.database().ref("presence/" + user.uid);
+      userRef.update({ userOnline: false, currentRoom: "" });
+    });
     this.props.firebase.auth().signOut().then(() => {
       this.props.settingUser("Guest");
-      this.setState({ signedIn: !this.state.signedIn });
     });
   }
 
