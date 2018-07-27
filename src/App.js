@@ -77,7 +77,9 @@ class App extends Component {
         </div>
         <div className="member-list">
           <h2>{this.state.activeRoom.title || "Select A Room"}</h2>
-          <div>{roomParticipants}</div>
+          <div>
+            {roomParticipants}
+          </div>
           <div>{roomList}</div>
         </div>
         <div className="message-section">

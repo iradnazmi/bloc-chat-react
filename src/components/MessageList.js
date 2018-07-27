@@ -111,8 +111,13 @@ export class MessageList extends Component {
           sentAt: message.val().sentAt
         });
       });
-      this.setState({ messages: messageChanges })
+      this.setState({ messages: messageChanges });
+      this.newMessage.scrollIntoView();
     });
+  }
+
+  componentDidUpdate() {
+    this.newMessage.scrollIntoView();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -128,7 +133,8 @@ export class MessageList extends Component {
             sentAt: message.val().sentAt
           });
         });
-        this.setState({ messages: messageChanges })
+        this.setState({ messages: messageChanges });
+        this.newMessage.scrollIntoView();
       });
     }
   }
@@ -165,6 +171,7 @@ export class MessageList extends Component {
       <div>
         <div>{messageBar}</div>
         <ul>{messageList}</ul>
+        <div ref={(newMessage) => this.newMessage = newMessage} />
       </div>
     );
   }

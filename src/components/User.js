@@ -3,9 +3,6 @@ import React, { Component } from 'react';
 export class User extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      adminStatus: false
-    };
     this.signIn = this.signIn.bind(this);
     this.signOut = this.signOut.bind(this);
   }

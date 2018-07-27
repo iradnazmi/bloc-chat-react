@@ -43,7 +43,7 @@ export class RoomList extends Component {
 
   createRoom(e) {
     e.preventDefault();
-    this.roomsRef.push({ title: this.state.title });
+    this.roomsRef.push({ title: this.state.title, creator: this.state.creator });
     this.setState({
       title: "",
       creator: ""

@@ -53,7 +53,7 @@ export class ChatRoomParticipants extends Component {
     );
     return (
       <div>
-        <h3 id="participantList"> Online</h3>
+        <h3> Online Now </h3>
         {chatRoomMembers}
       </div>
     );
