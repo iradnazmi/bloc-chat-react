@@ -149,7 +149,7 @@ export class MessageList extends Component {
     const messageList = (
       this.state.messages.map((message) =>
         <li key= {message.key}>
-          <p>{message.sentAt} {message.username}</p>
+          <p>({message.sentAt}) {message.username}</p>
           {(this.state.newContent === message.key) && (this.props.user === message.username) ?
             this.editMessage(message)
             :
@@ -169,8 +169,8 @@ export class MessageList extends Component {
     );
     return (
       <div>
-        <div>{messageBar}</div>
-        <ul>{messageList}</ul>
+        <ul className="messages">{messageList}</ul>
+        <div className="enter-message">{messageBar}</div>
         <div ref={(newMessage) => this.newMessage = newMessage} />
       </div>
     );

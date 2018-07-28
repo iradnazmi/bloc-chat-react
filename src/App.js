@@ -22,7 +22,7 @@ class App extends Component {
     super(props);
     this.state = {
       activeRoom: "",
-      user: null,
+      user: "Guest",
     };
     this.activeRoom = this.activeRoom.bind(this);
     this.settingUser = this.settingUser.bind(this);
@@ -57,7 +57,7 @@ class App extends Component {
       currentUser = "Guest";
     }
 
-    if (this.state.user !== null && this.state.activeRoom) {
+    if (this.state.activeRoom) {
       messageList = (
         <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user.displayName} />
       );
@@ -75,12 +75,12 @@ class App extends Component {
         <div className="user-options">
           <User firebase={firebase} settingUser={this.settingUser} welcome={currentUser} />
         </div>
-        <div className="member-list">
-          <h2>{this.state.activeRoom.title || "Select A Room"}</h2>
-          <div>
+        <div className="clist">
+          <h2 className="room-title">{this.state.activeRoom.title || "Select A Room"}</h2>
+          <div className="participants-list">
             {roomParticipants}
           </div>
-          <div>{roomList}</div>
+          <div className="chatlist">{roomList}</div>
         </div>
         <div className="message-section">
           {messageList}
