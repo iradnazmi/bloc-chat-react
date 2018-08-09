@@ -36,14 +36,14 @@ export class MessageList extends Component {
 
   updateMessage(e) {
     e.preventDefault();
-    const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
+    const messagesRef = this.props.firebase.database().ref("messages/" + this.props.activeRoom);
     const updates = {[this.state.newContent + "/content"]: this.input.value};
     messagesRef.update(updates);
     this.setState({ newContent: "" });
   }
 
   createMessage(e) {
-    const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
+    const messagesRef = this.props.firebase.database().ref("messages/" + this.props.activeRoom);
     e.preventDefault();
     if (this.props.user === "Guest") {
       messagesRef.push({
@@ -62,7 +62,7 @@ export class MessageList extends Component {
       username: "",
       content: "",
       sentAt: "",
-      roomId: ""
+      // roomId: ""
     });
   }
 
@@ -78,17 +78,22 @@ export class MessageList extends Component {
 
   handleKeyDown(e) {
     const userRef = this.props.firebase.database().ref("presence/" + this.props.user.uid);
-    if (this.props.user !== null) {
-      userRef.update({isTyping: true});
-      setTimeout(() => {
-        userRef.update({isTyping:false});
-      }, 3500);
-    }
+    userRef.update({ isTyping: true });
+    setTimeout(() => {
+      userRef.update({ isTyping: false });
+    }, 2000);
+    // const userRef = this.props.firebase.database().ref("presence/" + this.props.user.uid);
+    // if (this.props.user !== null) {
+    //   userRef.update({isTyping: true});
+    //   setTimeout(() => {
+    //     userRef.update({isTyping:false});
+    //   }, 3500);
+    // }
   }
 
   componentDidMount() {
     this._ismounted = true;
-    const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
+    const messagesRef = this.props.firebase.database().ref("messages/" + this.props.activeRoom);
     messagesRef.on('value', snapshot => {
       const messageChanges = [];
       snapshot.forEach((message) => {
@@ -110,7 +115,7 @@ export class MessageList extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.activeRoom !== this.props.activeRoom) {
-      const messagesRef = this.props.firebase.database().ref("rooms/" + nextProps.activeRoom + "/messages");
+      const messagesRef = this.props.firebase.database().ref("messages/" + nextProps.activeRoom);
       messagesRef.on('value', snapshot => {
         let messageChanges = [];
         snapshot.forEach((message) => {

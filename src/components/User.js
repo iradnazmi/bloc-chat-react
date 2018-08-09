@@ -11,25 +11,24 @@ export class User extends Component {
     this._ismounted = true;
     this.props.firebase.auth().onAuthStateChanged(user => {
       this.props.settingUser(user);
+      const isOnline = this.props.firebase.database().ref(".info/connected");
+      if (user) {
+        const userRef = this.props.firebase.database().ref("presence/" + user.uid);
+        isOnline.on("value", snapshot => {
+          if (snapshot.val()) {
+            userRef.update({
+              username: user.displayName,
+              isOnline: true
+            })
+            userRef.onDisconnect().update({
+              username: "Guest",
+              isOnline: false,
+              currentRoom: ""
+            });
+          }
+        });
+      }
     });
-      // const isOnline = this.props.firebase.database().ref(".info/connected");
-      // if (user) {
-      //   const userRef = this.props.firebase.database().ref("presence/" + user.uid);
-      //   isOnline.on("value", snapshot => {
-      //     if (snapshot.val()) {
-      //       userRef.update({
-      //         username: user.displayName,
-      //         isOnline: true
-      //       })
-      //       userRef.onDisconnect().update({
-      //         username: "Guest",
-      //         isOnline: false,
-      //         currentRoom: ""
-      //       });
-      //     }
-      //   });
-      // }
-    //});
 
   }
 
@@ -47,7 +46,7 @@ export class User extends Component {
       userRef.update({ isOnline: false, currentRoom: "" });
     });
     this.props.firebase.auth().signOut().then(() => {
-      this.props.settingUser("Guest");
+      this.props.settingUser(null);
     });
   }
 

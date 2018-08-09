@@ -25,24 +25,10 @@ export class ChatRoomParticipants extends Component {
       }
       this.setState({ members: memberChanges });
     });
-    // const roomRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/members");
-    // roomRef.on('value', snapshot => {
-    //   const memberChanges = [];
-    //   snapshot.forEach((member) => {
-    //     memberChanges.push({
-    //       key: member.key,
-    //       username: member.val().username,
-    //       isTyping: member.val().isTyping
-    //     });
-    //   });
-    //   this.setState({ members: memberChanges });
-    // });
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.activeRoom !== this.props.activeRoom) {
-      // const roomRef = this.props.firebase.database().ref("rooms/" + nextProps.activeRoom + "/participants");
-      // roomRef.on('value', snapshot => {
       const userRef = this.props.firebase.database().ref("presence/");
       userRef.orderByChild("currentRoom").equalTo(nextProps.activeRoom).on('value', snapshot => {
         const memberChanges = [];

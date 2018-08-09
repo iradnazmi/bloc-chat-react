@@ -32,6 +32,12 @@ class App extends Component {
     this.setState({
       activeRoom: room
     });
+    let userRef = firebase.database().ref("presence/Guest");
+    const roomKey = room === "" ? "" : room.key;
+    if (this.state.user !== null) {
+      userRef = firebase.database().ref("presence/" + this.state.user.uid);
+    }
+    userRef.update({ currentRoom: roomKey });
   }
 
   settingUser(user) {
