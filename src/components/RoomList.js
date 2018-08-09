@@ -44,8 +44,11 @@ export class RoomList extends Component {
 
   createRoom(e) {
     e.preventDefault();
-    // const roomCreator = this.props.user !== null ? this.props.user.displayName : null;
-    this.roomsRef.push({ title: this.state.title, creator: this.state.creator });
+    if (this.props.user === "Guest") {
+      this.roomsRef.push({ title: this.state.title, creator: "Guest"});
+    } else {
+      this.roomsRef.push({ title: this.state.title, creator: this.state.creator });
+    }
     this.setState({
       title: "",
       creator: ""
@@ -56,7 +59,7 @@ export class RoomList extends Component {
     e.preventDefault();
     this.setState({
       [e.target.name]: e.target.value,
-      creator: this.props.user
+      creator: this.props.user.displayName
     });
   }
 
@@ -80,6 +83,7 @@ export class RoomList extends Component {
   }
 
   render() {
+    const userDisplay = this.props.user === null ? "Guest" : this.props.user.displayName;
     const chatRoomForm = (
       <form onSubmit={this.createRoom}>
         <input type="text" name="title" value={this.state.title} placeholder="Enter your room name" onChange={this.handleChange}/>
@@ -93,7 +97,7 @@ export class RoomList extends Component {
           :
           <div className="room-section">
             <h3 id="room-titles" onClick={(e) => this.selectRoom(room,e)}>{room.title}</h3>
-            {this.props.user === this.state.creator ?
+            {userDisplay === room.creator ?
               <div className="creator-options">
                 <button id="delete-room" onClick={(e) => this.deleteRoom(room.key)}>Delete</button>
                 <button id="edit-name" onClick={() => this.setState({ newName: room.key })}>Edit</button>
