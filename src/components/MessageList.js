@@ -19,7 +19,7 @@ export class MessageList extends Component {
   }
 
   deleteMessage(messageKey) {
-    const fbMessages = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages/" + messageKey);
+    const fbMessages = this.props.firebase.database().ref("messages/" + this.props.activeRoom + "/" + messageKey);
     fbMessages.remove();
   }
 
@@ -62,7 +62,6 @@ export class MessageList extends Component {
       username: "",
       content: "",
       sentAt: "",
-      // roomId: ""
     });
   }
 
@@ -82,13 +81,6 @@ export class MessageList extends Component {
     setTimeout(() => {
       userRef.update({ isTyping: false });
     }, 2000);
-    // const userRef = this.props.firebase.database().ref("presence/" + this.props.user.uid);
-    // if (this.props.user !== null) {
-    //   userRef.update({isTyping: true});
-    //   setTimeout(() => {
-    //     userRef.update({isTyping:false});
-    //   }, 3500);
-    // }
   }
 
   componentDidMount() {
