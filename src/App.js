@@ -22,7 +22,7 @@ class App extends Component {
     super(props);
     this.state = {
       activeRoom: "",
-      user: "Guest",
+      user: null,
     };
     this.activeRoom = this.activeRoom.bind(this);
     this.settingUser = this.settingUser.bind(this);
@@ -32,9 +32,6 @@ class App extends Component {
     this.setState({
       activeRoom: room
     });
-    const userRef = firebase.database().ref("presence/" + this.state.user.uid);
-    const roomKey = room === "" ? "" : room.key;
-    userRef.update({ currentRoom: roomKey });
   }
 
   settingUser(user) {
@@ -44,47 +41,40 @@ class App extends Component {
   }
 
   render() {
-    let messageList;
-    let currentUser;
-    let roomList;
-    let roomParticipants;
+    let messageList, currentUser, roomList, roomParticipants;
     if (this.state.user !== null) {
-      roomList = (
-        <RoomList firebase={firebase} activeRoom={this.activeRoom} user={this.state.user.email} />
-      );
       currentUser = this.state.user.displayName;
     } else {
       currentUser = "Guest";
     }
+    roomList = (
+      <RoomList firebase={firebase} activeRoom={this.activeRoom} user={this.state.user} />
+    );
 
     if (this.state.activeRoom) {
       messageList = (
-        <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user.displayName} />
+        <MessageList firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user !== null ? this.state.user : "Guest"} />
       );
       roomParticipants = (
-        <ChatRoomParticipants firebase={firebase} activeRoom={this.state.activeRoom.key} user={this.state.user.displayName} />
+        <ChatRoomParticipants firebase={firebase} activeRoom={this.state.activeRoom.key} />
       );
     }
 
     return (
       <div className="App">
         <header className="App-header">
-          <h1 className="App-title" onClick={() => this.setState({ activeRoom: ""})}> TeChat</h1>
-          <h3 className="slogan">Talk to friends all across the globe about the latest in technology!</h3>
+          <h1 className="App-title" onClick={() => this.setState({ activeRoom: ""})}> CookieChat</h1>
+          <h2 className="slogan">Share your own recipes and get advice for your next dish!</h2>
         </header>
         <div className="user-options">
           <User firebase={firebase} settingUser={this.settingUser} welcome={currentUser} />
         </div>
-        <div className="clist">
+        <div className="room-info">
           <h2 className="room-title">{this.state.activeRoom.title || "Select A Room"}</h2>
-          <div className="participants-list">
-            {roomParticipants}
-          </div>
-          <div className="chatlist">{roomList}</div>
+          <div className="room-list">{roomList}</div>
         </div>
-        <div className="message-section">
-          {messageList}
-        </div>
+        <div className="messages-section">{messageList}</div>
+        <div className="chat-members">{roomParticipants}</div>
       </div>
     );
   }

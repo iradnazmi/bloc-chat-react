@@ -8,30 +8,34 @@ export class User extends Component {
   }
 
   componentDidMount() {
+    this._ismounted = true;
     this.props.firebase.auth().onAuthStateChanged(user => {
       this.props.settingUser(user);
-      const userOnline = this.props.firebase.database().ref(".info/connected");
-      if (user) {
-        const userRef = this.props.firebase.database().ref("presence/" + user.uid);
-        userOnline.on("value", snapshot => {
-          if (snapshot.val()) {
-            userRef.update({
-              username: user.displayName,
-              userOnline: true
-            })
-            userRef.onDisconnect().update({
-              userOnline: false,
-              currentRoom: ""
-            });
-          }
-        });
-      }
     });
+      // const isOnline = this.props.firebase.database().ref(".info/connected");
+      // if (user) {
+      //   const userRef = this.props.firebase.database().ref("presence/" + user.uid);
+      //   isOnline.on("value", snapshot => {
+      //     if (snapshot.val()) {
+      //       userRef.update({
+      //         username: user.displayName,
+      //         isOnline: true
+      //       })
+      //       userRef.onDisconnect().update({
+      //         username: "Guest",
+      //         isOnline: false,
+      //         currentRoom: ""
+      //       });
+      //     }
+      //   });
+      // }
+    //});
+
   }
 
   signIn() {
     const provider = new this.props.firebase.auth.GoogleAuthProvider();
-    this.props.firebase.auth().signInWithPopup(provider).then(result => {
+    this.props.firebase.auth().signInWithPopup(provider).then((result) => {
       const user = result.user;
       this.props.settingUser(user);
     });
@@ -40,16 +44,13 @@ export class User extends Component {
   signOut() {
     this.props.firebase.auth().onAuthStateChanged(user => {
       const userRef = this.props.firebase.database().ref("presence/" + user.uid);
-      userRef.update({ userOnline: false, currentRoom: "" });
+      userRef.update({ isOnline: false, currentRoom: "" });
     });
     this.props.firebase.auth().signOut().then(() => {
       this.props.settingUser("Guest");
     });
   }
 
-  createAdmin() {
-    this.setState({ adminStatus: true });
-  }
 
   render() {
     return (

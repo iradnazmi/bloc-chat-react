@@ -9,7 +9,6 @@ export class RoomList extends Component {
         rooms: [],
         newName: ""
       };
-
       this.roomsRef = this.props.firebase.database().ref('rooms');
       this.createRoom = this.createRoom.bind(this);
       this.handleChange = this.handleChange.bind(this);
@@ -37,12 +36,15 @@ export class RoomList extends Component {
 
   deleteRoom(roomKey) {
     const fbRooms = this.props.firebase.database().ref("rooms/" + roomKey);
+    const fbRoomMessages = this.props.firebase.database().ref("messages/" + roomKey)
     fbRooms.remove();
+    fbRoomMessages.remove();
     this.props.activeRoom("")
   }
 
   createRoom(e) {
     e.preventDefault();
+    // const roomCreator = this.props.user !== null ? this.props.user.displayName : null;
     this.roomsRef.push({ title: this.state.title, creator: this.state.creator });
     this.setState({
       title: "",
@@ -63,6 +65,7 @@ export class RoomList extends Component {
   }
 
   componentDidMount() {
+    this._ismounted = true;
     this.roomsRef.on('value', snapshot => {
       const roomChanges = [];
       snapshot.forEach((room) => {
@@ -72,7 +75,7 @@ export class RoomList extends Component {
           creator: room.val().creator
         });
       });
-      this.setState({ rooms: roomChanges })
+      this.setState({ rooms: roomChanges });
     });
   }
 
@@ -81,7 +84,8 @@ export class RoomList extends Component {
       <form onSubmit={this.createRoom}>
         <input type="text" name="title" value={this.state.title} placeholder="Enter your room name" onChange={this.handleChange}/>
         <input type="submit" value="Create Chat Room"/>
-      </form> );
+      </form>
+    );
     const roomList = this.state.rooms.map((room) =>
       <li key={room.key}>
         {this.state.newName === room.key ?
@@ -89,8 +93,8 @@ export class RoomList extends Component {
           :
           <div className="room-section">
             <h3 id="room-titles" onClick={(e) => this.selectRoom(room,e)}>{room.title}</h3>
-            {this.props.user === room.creator ?
-              <div>
+            {this.props.user === this.state.creator ?
+              <div className="creator-options">
                 <button id="delete-room" onClick={(e) => this.deleteRoom(room.key)}>Delete</button>
                 <button id="edit-name" onClick={() => this.setState({ newName: room.key })}>Edit</button>
               </div>
@@ -103,7 +107,12 @@ export class RoomList extends Component {
     );
     return(
       <div>
-        <div> {chatRoomForm} </div>
+        <div> {this.props.user !== null ?
+                chatRoomForm
+                :
+                null
+              }
+        </div>
         <ul> {roomList} </ul>
       </div>
     );

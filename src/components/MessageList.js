@@ -44,21 +44,20 @@ export class MessageList extends Component {
 
   createMessage(e) {
     const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
-    const member = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/members");
     e.preventDefault();
-    messagesRef.orderByChild("username").equalTo(this.state.username).once("value", snapshot => {
-      if (!snapshot.val()) {
-        member.push({
-          username: this.state.username,
-          isTyping: false
-        });
-      }
-    });
-    messagesRef.push({
-      username: this.state.username,
-      content: this.state.content,
-      sentAt: this.state.sentAt
-    });
+    if (this.props.user === "Guest") {
+      messagesRef.push({
+        username: this.props.user,
+        content: this.state.content,
+        sentAt: this.state.sentAt
+      });
+    } else {
+      messagesRef.push({
+        username: this.props.user.displayName,
+        content: this.state.content,
+        sentAt: this.state.sentAt
+      })
+    }
     this.setState({
       username: "",
       content: "",
@@ -78,37 +77,26 @@ export class MessageList extends Component {
   }
 
   handleKeyDown(e) {
-    const member = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/members");
-    member.orderByChild("username").equalTo(this.props.user).once("value", snapshot => {
-      if (snapshot.val()) {
-        snapshot.forEach((item) => {
-          const updates = { [item.key + "/isTyping"]: true };
-          member.update(updates);
-        });
-      }
-    });
-    setTimeout(() => {
-      member.orderByChild("username").equalTo(this.props.user).once("value", snapshot => {
-        if (snapshot.val()) {
-          snapshot.forEach((item) => {
-            const updates = { [item.key + "/isTyping"]: false };
-            member.update(updates);
-          });
-        }
-      });
-    }, 3500);
+    const userRef = this.props.firebase.database().ref("presence/" + this.props.user.uid);
+    if (this.props.user !== null) {
+      userRef.update({isTyping: true});
+      setTimeout(() => {
+        userRef.update({isTyping:false});
+      }, 3500);
+    }
   }
 
   componentDidMount() {
+    this._ismounted = true;
     const messagesRef = this.props.firebase.database().ref("rooms/" + this.props.activeRoom + "/messages");
     messagesRef.on('value', snapshot => {
       const messageChanges = [];
       snapshot.forEach((message) => {
         messageChanges.push({
-          key: message.key,
           username: message.val().username,
           content: message.val().content,
-          sentAt: message.val().sentAt
+          sentAt: message.val().sentAt,
+          key: message.key
         });
       });
       this.setState({ messages: messageChanges });
@@ -127,10 +115,10 @@ export class MessageList extends Component {
         let messageChanges = [];
         snapshot.forEach((message) => {
           messageChanges.push({
-            key: message.key,
             username: message.val().username,
             content: message.val().content,
-            sentAt: message.val().sentAt
+            sentAt: message.val().sentAt,
+            key: message.key
           });
         });
         this.setState({ messages: messageChanges });
@@ -150,12 +138,12 @@ export class MessageList extends Component {
       this.state.messages.map((message) =>
         <li key= {message.key}>
           <p>({message.sentAt}) {message.username}</p>
-          {(this.state.newContent === message.key) && (this.props.user === message.username) ?
+          {(this.state.newContent === message.key) && (this.props.user.displayName === message.username) ?
             this.editMessage(message)
             :
             <div>
               <p>{message.content}</p>
-            {this.props.user === message.username ?
+            {this.props.user.displayName === message.username ?
               <div>
                 <button onClick={() => this.setState({newContent: message.key})}>Edit</button>
                 <button onClick={(e) => this.deleteMessage(message.key)}>Delete</button>
