@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import { Col, Navbar, DropdownButton, MenuItem, FormGroup, InputGroup, FormControl, Button } from 'react-bootstrap';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import ".././styles/RoomList.css";
 
 export class RoomList extends Component {
   constructor(props) {
@@ -18,11 +21,19 @@ export class RoomList extends Component {
 
   editRoomName(room) {
     const newRoomName = (
-      <form onSubmit={this.updateRoom}>
-        <input type="text" defaultValue={room.title} ref={(input) => this.input = input}/>
-        <input type="submit" value="Update" />
-        <button type="button" onClick={() => this.setState({ newName: "" })}>Cancel</button>
-      </form>
+      <div className="room-edit">
+        <form onSubmit={this.updateRoom}>
+          <FormGroup>
+            <InputGroup>
+              <FormControl type="text" defaultValue={room.title} inputRef={(input) => this.input = input} />
+              <InputGroup.Button>
+                <Button type="submit" alt="update">Update</Button>
+                <Button type="button" alt="cancel" onClick={() => this.setState({ newName: "" })}>Cancel</Button>
+              </InputGroup.Button>
+            </InputGroup>
+          </FormGroup>
+        </form>
+      </div>
     );
     return newRoomName;
   }
@@ -86,39 +97,54 @@ export class RoomList extends Component {
     const userDisplay = this.props.user === null ? "Guest" : this.props.user.displayName;
     const chatRoomForm = (
       <form onSubmit={this.createRoom}>
-        <input type="text" name="title" value={this.state.title} placeholder="Enter your room name" onChange={this.handleChange}/>
-        <input type="submit" value="Create Chat Room"/>
+        <FormGroup>
+          <InputGroup>
+            <FormControl type="text" name="title" value={this.state.title} placeholder="Enter your room name" onChange={this.handleChange} />
+            <InputGroup.Button>
+              <Button type="submit">Create Chat Room</Button>
+            </InputGroup.Button>
+          </InputGroup>
+        </FormGroup>
       </form>
     );
+
     const roomList = this.state.rooms.map((room) =>
-      <li key={room.key}>
+      <CSSTransition key={room.key} classNames="room-transition" timeout={{ enter: 500, exit: 300 }}>
+        <li className="room-list-item">
         {this.state.newName === room.key ?
           this.editRoomName(room)
           :
-          <div className="room-section">
-            <h3 id="room-titles" onClick={(e) => this.selectRoom(room,e)}>{room.title}</h3>
+          <div className="room-block">
+            <h3 id="room-title cursor-color-change" onClick={(e) => this.selectRoom(room,e)}>{room.title}</h3>
             {userDisplay === room.creator ?
-              <div className="creator-options">
-                <button id="delete-room" onClick={(e) => this.deleteRoom(room.key)}>Delete</button>
-                <button id="edit-name" onClick={() => this.setState({ newName: room.key })}>Edit</button>
-              </div>
+              <DropdownButton
+                title={<span className="fa fa-angle-double-down"></span>}
+                id ="bg-nested-dropdown"
+                className="room-options"
+              >
+                <MenuItem onClick={() => this.setState({ newName: room.key })}>Edit</MenuItem>
+                <MenuItem onClick={(e) => this.deleteRoom(room.key)}>Delete</MenuItem>
+              </DropdownButton>
               :
-              null
+              <div className="no-options"></div>
             }
           </div>
         }
-      </li>
+        </li>
+      </CSSTransition>
     );
+
     return(
-      <div>
-        <div> {this.props.user !== null ?
-                chatRoomForm
-                :
-                null
-              }
-        </div>
-        <ul> {roomList} </ul>
-      </div>
+      <Col xs={12} className="room-list">
+      {this.props.user !== null ?
+        <Navbar.Form>{chatRoomForm}</Navbar.Form>
+        :
+        null
+      }
+        <TransitionGroup component="ul">
+          {roomList}
+        </TransitionGroup>
+      </Col>
     );
   }
 }

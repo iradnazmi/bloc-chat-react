@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ".././styles/ChatRoomParticipants.css";
 
 export class ChatRoomParticipants extends Component {
   constructor(props) {
@@ -51,7 +52,7 @@ export class ChatRoomParticipants extends Component {
     const chatRoomMembers = (
       this.state.members.map((member) =>
         <div key={member.key}>
-          <h4>
+          <h4 className="participant-name">
             {member.username}
             <span><small>{member.isTyping ? " is typing..." : null}</small></span>
           </h4>
@@ -60,7 +61,7 @@ export class ChatRoomParticipants extends Component {
     );
     return (
       <div>
-        <h3> Online Now </h3>
+        <h3 className="participants-heading"> Online Now </h3>
         {chatRoomMembers}
       </div>
     );

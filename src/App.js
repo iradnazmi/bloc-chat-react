@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
-import './App.css';
+import './styles/App.css';
 import * as firebase from 'firebase';
 import { RoomList } from "./components/RoomList.js";
 import { MessageList } from "./components/MessageList.js";
 import { User } from "./components/User.js";
 import { ChatRoomParticipants } from "./components/ChatRoomParticipants.js";
+import { Grid, Row, Col, Navbar } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/css/bootstrap-theme.css';
 
 // Initialize Firebase
 var config = {
@@ -67,21 +70,31 @@ class App extends Component {
     }
 
     return (
-      <div className="App">
-        <header className="App-header">
-          <h1 className="App-title" onClick={() => this.setState({ activeRoom: ""})}> CookieChat</h1>
-          <h2 className="slogan">Share your own recipes and get advice for your next dish!</h2>
-        </header>
-        <div className="user-options">
-          <User firebase={firebase} settingUser={this.settingUser} welcome={currentUser} />
-        </div>
-        <div className="room-info">
-          <h2 className="room-title">{this.state.activeRoom.title || "Select A Room"}</h2>
-          <div className="room-list">{roomList}</div>
-        </div>
-        <div className="messages-section">{messageList}</div>
-        <div className="chat-members">{roomParticipants}</div>
-      </div>
+      <Grid fluid className="main">
+        <Row className="show-grid main-row">
+          <Col sm={3} xs={12} className="sidenav">
+            <Navbar fluid>
+              <Navbar.Header>
+                <Navbar.Brand>
+                  <h1 onClick={() => this.setState({ activeRoom: ""})}> CookieChat</h1>
+                </Navbar.Brand>
+                <Navbar.Toggle />
+              </Navbar.Header>
+              <Navbar.Collapse>
+                <User firebase={firebase} settingUser={this.settingUser} welcome={currentUser} />
+                <Col xs={12} className="room-section">
+                  <h2 className="active-room">{this.state.activeRoom.title || "Select A Room"}</h2>
+                    {roomParticipants}
+                </Col>
+                {roomList}
+              </Navbar.Collapse>
+            </Navbar>
+          </Col>
+
+          {messageList}
+
+        </Row>      
+      </Grid>
     );
   }
 }

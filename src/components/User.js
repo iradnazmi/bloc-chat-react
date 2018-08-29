@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ".././styles/User.css";
 
 export class User extends Component {
   constructor(props) {
@@ -53,7 +54,7 @@ export class User extends Component {
 
   render() {
     return (
-      <div className="login-button">
+      <div className="login-section">
         <h3>Welcome, {this.props.welcome}</h3>
         { this.props.welcome === "Guest" ?
           <button id="logIn" onClick={this.signIn}>Log In</button>

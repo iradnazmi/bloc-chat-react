@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import { Col, FormGroup, InputGroup, FormControl, Button } from 'react-bootstrap';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import ".././styles/MessageList.css";
 
 export class MessageList extends Component {
   constructor(props) {
@@ -26,9 +29,15 @@ export class MessageList extends Component {
   editMessage(message) {
     const edit = (
       <form onSubmit={this.updateMessage}>
-        <input type="text" defaultValue={message.content} ref={(input) => this.input = input}/>
-        <input type="submit" value="Update" />
-        <button type="button" onClick={() => this.setState({ newContent: "" })}>Cancel</button>
+        <FormGroup>
+          <InputGroup>
+            <FormControl type="text" defaultValue={message.content} inputRef={(input) => this.input = input} />
+              <InputGroup.Button>
+                <Button type="submit" alt="update">Update</Button>
+                <Button type="button" alt="cancel" onClick={() => this.setState({ newContent: "" })}>Cancel</Button>
+              </InputGroup.Button>
+          </InputGroup>
+        </FormGroup>
       </form>
     );
     return edit;
@@ -36,8 +45,8 @@ export class MessageList extends Component {
 
   updateMessage(e) {
     e.preventDefault();
-    const messagesRef = this.props.firebase.database().ref("messages/" + this.props.activeRoom);
-    const updates = {[this.state.newContent + "/content"]: this.input.value};
+    const messagesRef = this.props.firebase.database().ref("messages/" + this.props.activeRoom + "/" + this.state.newContent);
+    const updates = {["/content"]: this.input.value};
     messagesRef.update(updates);
     this.setState({ newContent: "" });
   }
@@ -127,37 +136,49 @@ export class MessageList extends Component {
   render() {
     const messageBar = (
       <form onSubmit={this.createMessage}>
-        <input type="text" value={this.state.content} placeholder="Enter your message" onChange={this.handleChange} onKeyDown={this.handleKeyDown}/>
-        <input type="submit" value="Send"/>
+        <FormGroup>
+          <InputGroup>
+            <FormControl type="text" value={this.state.content} placeholder="Enter your message" onChange={this.handleChange} onKeyDown={this.handleKeyDown}/>
+            <InputGroup.Button>
+              <Button type="submit">Send</Button>
+            </InputGroup.Button>
+          </InputGroup>
+        </FormGroup>
       </form>
     );
-    const messageList = (
-      this.state.messages.map((message) =>
-        <li key= {message.key}>
-          <p>({message.sentAt}) {message.username}</p>
-          {(this.state.newContent === message.key) && (this.props.user.displayName === message.username) ?
+    const messageList = this.state.messages.map((message) =>
+        <CSSTransition key={message.key} classNames="message-transition" timeout={200}>
+          <li className="message-item">
+            <h4 className="msg-sent-at">({message.sentAt})</h4>
+            <h4 className="msg-username">{message.username}</h4>
+            {(this.state.newContent === message.key) && (this.props.user.displayName === message.username) ?
             this.editMessage(message)
             :
             <div>
-              <p>{message.content}</p>
+              <p className="msg-content">{message.content}</p>
             {this.props.user.displayName === message.username ?
               <div>
                 <button onClick={() => this.setState({newContent: message.key})}>Edit</button>
                 <button onClick={(e) => this.deleteMessage(message.key)}>Delete</button>
               </div>
-              : null
+              : <div className="no-edit-msg" />
             }
             </div>
-          }
-        </li>
-      )
-    );
+            }
+          </li>
+        </CSSTransition>
+      );
+
     return (
-      <div>
-        <ul className="messages">{messageList}</ul>
-        <div className="enter-message">{messageBar}</div>
-        <div ref={(newMessage) => this.newMessage = newMessage} />
-      </div>
+      <Col sm={9} xs={12} className="message-section">
+        <Col xs={12} className="message-list">
+          <TransitionGroup component="ul">{messageList}</TransitionGroup>
+          <div ref={(newMessage) => this.newMessage = newMessage} />
+        </Col>
+        <Col xs={12} className="message-bar">
+          {messageBar}
+        </Col>
+      </Col>
     );
   }
 }
